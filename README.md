@@ -41,16 +41,16 @@ This visualisation shows the dependencies between different objects.
 ```mermaid
   graph TD;
       WekanClient-->Board;
-      WekanClient-->User;
-      Board-->List;
+      WekanClient-->WekanUser;
+      Board-->WekanList;
       Board-->Swimlane;
-      Swimlane-->Card;
+      Swimlane-->WekanCard;
       Board-->Integration;
       Board-->CustomField;
       Board-->Label;
-      List-->Card;
-      Card-->CardComment;
-      Card-->CardChecklist;
+      WekanList-->WekanCard;
+      WekanCard-->CardComment;
+      WekanCard-->CardChecklist;
       CardChecklist-->CardChecklistItem;
 ```
 Example:
@@ -68,10 +68,7 @@ wekan = WekanClient(base_url='https://your_wekan_instance.com',
                     password=os.getenv('WEKAN_PASSWORD'))
 
 new_board = wekan.add_board(title="My new Board",
-                            color="midnight",
-                            is_admin=True,
-                            is_no_comments=False,
-                            is_comment_only=False)
+                            color="midnight")
 print(new_board.created_at)
 ```
 ### Create a new list
@@ -85,8 +82,8 @@ wekan = WekanClient(base_url='https://your_wekan_instance.com',
                     password=os.getenv('WEKAN_PASSWORD'))
 
 board = wekan.list_boards(regex_filter='My new Board')[0]
-board.add_list(title="My first list")
-board.add_list(title="My second list")
+board.create_list(title="My first list")
+board.create_list(title="My second list")
 ```
 ### Create a new card
 ```python
@@ -99,11 +96,9 @@ wekan = WekanClient(base_url='https://your_wekan_instance.com',
                     password=os.getenv('WEKAN_PASSWORD'))
 
 board = wekan.list_boards(regex_filter='My new Board')[0]
-wekan_list = board.list_lists(regex_filter="My first list")[0]
-swimlane = board.list_swimlanes()[0]
-wekan_list.add_card(title="My first card",
-                    swimlane=swimlane,
-                    description="My first description")
+wekan_list = board.get_lists(regex_filter="My first list")[0]
+wekan_list.create_card(title="My first card",
+                       description="My first description")
 ```
 ### Move card between lists
 ```python
@@ -116,10 +111,39 @@ wekan = WekanClient(base_url='https://your_wekan_instance.com',
                     password=os.getenv('WEKAN_PASSWORD'))
 
 board = wekan.list_boards(regex_filter='My new Board')[0]
-src_list = board.list_lists(regex_filter="My first list")[0]
-dst_list = board.list_lists(regex_filter="My second list")[0]
-card = src_list.list_cards(regex_filter="My first card")[0]
-card.edit(new_list=dst_list)
+src_list = board.get_lists(regex_filter="My first list")[0]
+dst_list = board.get_lists(regex_filter="My second list")[0]
+card = src_list.get_cards(regex_filter="My first card")[0]
+card.move_to_list(dst_list)
+```
+
+### Update a Board
+```python
+import os
+from wekan import WekanClient
+
+
+wekan = WekanClient(base_url='https://your_wekan_instance.com',
+                    username=os.getenv('WEKAN_USERNAME'),
+                    password=os.getenv('WEKAN_PASSWORD'))
+
+board = wekan.list_boards(regex_filter='My new Board')[0]
+board.update(title="My updated board title")
+```
+
+### Archive a List
+```python
+import os
+from wekan import WekanClient
+
+
+wekan = WekanClient(base_url='https://your_wekan_instance.com',
+                    username=os.getenv('WEKAN_USERNAME'),
+                    password=os.getenv('WEKAN_PASSWORD'))
+
+board = wekan.list_boards(regex_filter='My new Board')[0]
+wekan_list = board.get_lists(regex_filter="My second list")[0]
+wekan_list.archive()
 ```
 
 ### Create a new swimlane
