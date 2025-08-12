@@ -234,6 +234,64 @@ wekan status                # Show connection status and server info
 wekan version              # Show CLI version information
 ```
 
+#### Filesystem Cloning & Sync
+```bash
+# Clone entire WeKan host to filesystem
+wekan clone host https://wekan.example.com username password
+
+# Clone specific board by name/pattern
+wekan clone host https://wekan.example.com username password --board "Project Alpha"
+
+# Clone specific board by ID
+wekan clone host https://wekan.example.com username password --board 64a1b2c3d4e5f6789012345
+
+# Clone first board (by index)
+wekan clone host https://wekan.example.com username password --board 0
+
+# Clone to custom directory
+wekan clone host https://wekan.example.com username password --output ~/my-wekan-backups
+
+# List cloned repositories
+wekan clone list
+wekan clone list ~/my-wekan-backups
+```
+
+The filesystem representation follows this structure:
+```
+wekan-repos/
+├── example.com:8080/              # Host directory
+│   ├── .wekan-host/              # Host metadata & config
+│   ├── project-alpha/            # Board directory
+│   │   ├── .wekan-board/         # Board metadata, labels, etc.
+│   │   ├── backlog/              # List directory
+│   │   │   ├── .wekan-list/      # List metadata
+│   │   │   ├── story-001.md      # Card as markdown file
+│   │   │   └── bug-fix-auth.md
+│   │   └── done/
+│   └── marketing-board/
+```
+
+Each card is stored as a markdown file with YAML frontmatter containing metadata:
+```markdown
+---
+id: 64a1b2c3d4e5f6789012350
+title: Implement user authentication
+labels: [authentication, backend, high-priority]
+members: [alice.dev, bob.backend]
+due_at: 2025-01-20T17:00:00Z
+---
+
+# Implement user authentication
+
+## Description
+Create robust user authentication with login/logout...
+
+## Checklists
+### Technical Tasks
+- [x] Database schema design
+- [ ] API endpoints creation
+```
+
 ### Configuration
 The CLI supports multiple configuration methods:
 
@@ -266,6 +324,8 @@ export WEKAN_PASSWORD=your-password
 - **Card Editing**: Comprehensive card editing interface with date, member, label support
 - **Configuration Management**: Flexible configuration via files or environment variables
 - **Error Handling**: Improved error handling and user-friendly messages
+- **Filesystem Cloning**: Clone WeKan boards to local filesystem as markdown files
+- **Git-like Workflow**: Version control your kanban boards with standard tools
 
 ## Development
 ### Generate requirements

@@ -35,6 +35,7 @@ cli = [
     "typer>=0.9.0",
     "rich>=10.0.0",
     "pydantic>=1.8.0",
+    "pyyaml>=6.0.0",
 ]
 dev = [
     # Testing

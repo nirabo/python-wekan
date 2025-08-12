@@ -1088,6 +1088,7 @@ dependencies = [
 [package.optional-dependencies]
 cli = [
     { name = "pydantic" },
+    { name = "pyyaml" },
     { name = "rich" },
     { name = "typer" },
 ]
@@ -1131,6 +1132,7 @@ requires-dist = [
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.2.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=5.0.0" },
     { name = "python-dateutil", specifier = ">=2.9.0" },
+    { name = "pyyaml", marker = "extra == 'cli'", specifier = ">=6.0.0" },
     { name = "requests", specifier = ">=2.32.0" },
     { name = "rich", marker = "extra == 'cli'", specifier = ">=10.0.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.1.0" },
