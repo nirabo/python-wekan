@@ -13,7 +13,7 @@ except ImportError as e:
 
 from wekan.wekan_client import WekanClient
 
-from .commands import auth, boards, clone, config
+from .commands import auth, boards, clone, config, push
 from .config import load_config
 
 app = typer.Typer(
@@ -30,6 +30,7 @@ app.add_typer(auth.app, name="auth", help="Authentication commands")
 app.add_typer(boards.app, name="boards", help="Board management commands")
 app.add_typer(config.app, name="config", help="Configuration management commands")
 app.add_typer(clone.app, name="clone", help="Clone boards to filesystem representation")
+app.add_typer(push.app, name="push", help="Push filesystem changes back to WeKan")
 
 
 @app.callback(invoke_without_command=True)  # type: ignore[misc]
@@ -55,6 +56,9 @@ def main_callback(ctx: typer.Context) -> None:
         console.print("  • [bold green]config[/bold green]  - Configuration management commands")
         console.print(
             "  • [bold green]clone[/bold green]   - Clone boards to filesystem representation"
+        )
+        console.print(
+            "  • [bold green]push[/bold green]    - Push filesystem changes back to WeKan"
         )
         console.print()
         console.print(

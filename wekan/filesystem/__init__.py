@@ -7,6 +7,7 @@ from wekan.filesystem.models import (
     WekanHost,
     WekanListFS,
 )
+from wekan.filesystem.pusher import WekanPusher
 from wekan.filesystem.utils import sanitize_filename
 
 __all__ = [
@@ -15,5 +16,6 @@ __all__ = [
     "WekanListFS",
     "WekanCardFS",
     "WekanCloner",
+    "WekanPusher",
     "sanitize_filename",
 ]
