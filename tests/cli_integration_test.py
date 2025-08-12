@@ -42,13 +42,15 @@ class TestCLIIntegration:
 
     def test_status_no_config(self, runner: CliRunner) -> None:
         """Test status command without configuration."""
-        result = runner.invoke(app, ["status"])
-        assert result.exit_code == 1
-        assert (
-            "No WeKan server configured" in result.stdout
-            or "No credentials configured" in result.stdout
-            or "Not configured" in result.stdout
-        )
+        # Run in isolated environment without .wekan file
+        with runner.isolated_filesystem():
+            result = runner.invoke(app, ["status"])
+            assert result.exit_code == 1
+            assert (
+                "No WeKan server configured" in result.stdout
+                or "No credentials configured" in result.stdout
+                or "Not configured" in result.stdout
+            )
 
     def test_auth_commands(self, runner: CliRunner) -> None:
         """Test auth command help."""
