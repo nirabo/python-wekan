@@ -236,16 +236,16 @@ wekan version              # Show CLI version information
 
 #### Filesystem Cloning & Sync
 ```bash
-# Clone entire WeKan host to filesystem
+# Clone using configured credentials (.wekan file)
+wekan clone configured                              # Clone all boards
+wekan clone configured --board "Project Alpha"     # Clone specific board
+wekan clone configured --board 0                   # Clone first board
+wekan clone configured --output ~/backups          # Clone to custom directory
+
+# Clone with explicit credentials
 wekan clone host https://wekan.example.com username password
-
-# Clone specific board by name/pattern
 wekan clone host https://wekan.example.com username password --board "Project Alpha"
-
-# Clone specific board by ID
 wekan clone host https://wekan.example.com username password --board 64a1b2c3d4e5f6789012345
-
-# Clone first board (by index)
 wekan clone host https://wekan.example.com username password --board 0
 
 # Clone to custom directory
@@ -291,6 +291,8 @@ Create robust user authentication with login/logout...
 - [x] Database schema design
 - [ ] API endpoints creation
 ```
+
+**Note**: The default `wekan-repos/` directory is automatically added to `.gitignore` to prevent cloned WeKan data from being committed to your project repositories.
 
 ### Configuration
 The CLI supports multiple configuration methods:

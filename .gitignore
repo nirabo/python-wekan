@@ -127,5 +127,8 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# WeKan CLI configuration and cloned data
 .wekan
+wekan-repos/
 session.cast

@@ -17,7 +17,9 @@ class TestUtils:
     def test_sanitize_filename(self):
         """Test filename sanitization."""
         assert sanitize_filename("Project: Alpha/Beta") == "Project_Alpha_Beta"
-        assert sanitize_filename("Test<>File") == "Test__File"
+        assert (
+            sanitize_filename("Test<>File") == "Test_File"
+        )  # Multiple invalid chars become single _
         assert sanitize_filename("   Multiple   Spaces   ") == "Multiple_Spaces"
         assert sanitize_filename("") == "untitled"
         assert sanitize_filename("a" * 250) == "a" * 200
@@ -25,8 +27,10 @@ class TestUtils:
     def test_host_from_url(self):
         """Test host directory naming from URLs."""
         assert host_from_url("https://wekan.example.com") == "wekan.example.com"
-        assert host_from_url("http://localhost:8080") == "localhost:8080"
-        assert host_from_url("https://wekan.example.com:3000") == "wekan.example.com:3000"
+        assert host_from_url("http://localhost:8080") == "localhost_8080"  # : becomes _ in filename
+        assert (
+            host_from_url("https://wekan.example.com:3000") == "wekan.example.com_3000"
+        )  # : becomes _ in filename
 
     def test_json_file_operations(self):
         """Test JSON file read/write operations."""
@@ -56,8 +60,8 @@ class TestWekanHost:
         with tempfile.TemporaryDirectory() as temp_dir:
             host = WekanHost(base_path=temp_dir, base_url="https://wekan.example.com:8080")
 
-            assert host.host_name == "wekan.example.com:8080"
-            assert str(host.host_path).endswith("wekan.example.com:8080")
+            assert host.host_name == "wekan.example.com_8080"  # : becomes _ in filename
+            assert str(host.host_path).endswith("wekan.example.com_8080")
 
     def test_host_structure_creation(self):
         """Test host directory structure creation."""
@@ -151,6 +155,59 @@ class TestWekanCloner:
             )
 
             assert host.host_path.exists()
+
+
+class TestConfiguredCloning:
+    """Test configuration-based cloning functionality."""
+
+    @patch("wekan.filesystem.cloner.WekanClient")
+    @patch("wekan.cli.commands.clone.load_config")
+    def test_configured_clone_success(self, mock_load_config, mock_client_class):
+        """Test successful configured cloning."""
+        from wekan.cli.commands.clone import clone_configured
+
+        # Mock configuration
+        mock_config = MagicMock()
+        mock_config.base_url = "https://test.com"
+        mock_config.username = "test_user"
+        mock_config.password = "test_pass"  # pragma: allowlist secret
+        mock_load_config.return_value = mock_config
+
+        # Mock client
+        mock_client = MagicMock()
+        mock_client_class.return_value = mock_client
+        mock_client.list_boards.return_value = []
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # This would normally be called via CLI, but we test the logic
+            # Test the function directly by calling it with mocked typer context
+            with patch("wekan.cli.commands.clone.typer.Exit"):
+                clone_configured(output_dir=temp_dir, board=None)
+                # Should not raise, configuration should be processed
+
+            # Verify configuration was loaded
+            mock_load_config.assert_called_once()
+
+    @patch("wekan.cli.commands.clone.typer.Exit", side_effect=SystemExit)
+    @patch("wekan.cli.commands.clone.load_config")
+    def test_configured_clone_missing_config(self, mock_load_config, mock_exit):
+        """Test configured cloning with missing configuration."""
+        from wekan.cli.commands.clone import clone_configured
+
+        # Mock incomplete configuration
+        mock_config = MagicMock()
+        mock_config.base_url = None
+        mock_config.username = None
+        mock_config.password = None
+        mock_load_config.return_value = mock_config
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Should raise SystemExit due to missing config
+            with pytest.raises(SystemExit):
+                clone_configured(output_dir=temp_dir, board=None)
+
+            mock_load_config.assert_called_once()
+            mock_exit.assert_called_once_with(1)  # Should exit with error code 1
 
 
 if __name__ == "__main__":

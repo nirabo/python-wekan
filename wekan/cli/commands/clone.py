@@ -6,10 +6,86 @@ from typing import Optional
 import typer
 from rich.console import Console
 
+from wekan.cli.config import load_config
 from wekan.filesystem.cloner import WekanCloner
 
 app = typer.Typer(help="Clone WeKan boards to filesystem representation")
 console = Console()
+
+
+@app.command("configured")
+def clone_configured(
+    output_dir: str = typer.Option(
+        "wekan-repos", "--output", "-o", help="Output directory for cloned data"
+    ),
+    board: Optional[str] = typer.Option(
+        None, "--board", "-b", help="Specific board ID, index, or name pattern to clone"
+    ),
+) -> None:
+    """Clone configured WeKan host (from .wekan config file) to filesystem.
+
+    This command uses credentials from your .wekan configuration file.
+    Run 'wekan config init' first to set up your credentials.
+
+    Examples:
+        wekan clone configured                           # Clone all boards
+        wekan clone configured --board "Project Alpha"   # Clone specific board
+        wekan clone configured --board 0                 # Clone first board
+        wekan clone configured --output ~/backups        # Clone to custom directory
+    """
+    # Load configuration
+    try:
+        config = load_config()
+    except Exception as e:
+        console.print(f"[red]Error loading configuration: {e}[/red]")
+        console.print("\n[yellow]Run 'wekan config init' to set up your configuration.[/yellow]")
+        raise typer.Exit(1)
+
+    # Validate required configuration
+    if not config.base_url or not config.username or not config.password:
+        console.print("[red]Configuration incomplete![/red]")
+        console.print("\n[yellow]Missing required configuration:[/yellow]")
+        if not config.base_url:
+            console.print("  • base_url")
+        if not config.username:
+            console.print("  • username")
+        if not config.password:
+            console.print("  • password")
+        console.print(
+            "\n[cyan]Run 'wekan config init <url> <username> <password>' to configure.[/cyan]"
+        )
+        raise typer.Exit(1)
+
+    # Show what we're cloning
+    console.print(f"[blue]Cloning from configured host:[/blue] {config.base_url}")
+    if board:
+        console.print(f"[blue]Board filter:[/blue] {board}")
+    console.print(f"[blue]Output directory:[/blue] {output_dir}")
+    console.print()
+
+    try:
+        cloner = WekanCloner(console)
+        host = cloner.clone_host(
+            base_url=config.base_url,
+            username=config.username,
+            password=config.password,
+            output_dir=output_dir,
+            board_filter=board,
+        )
+
+        console.print("\n[bold green]Clone completed successfully![/bold green]")
+        console.print(f"[dim]Data saved to: {host.host_path}[/dim]")
+
+        # Show next steps
+        console.print("\n[bold cyan]Next steps:[/bold cyan]")
+        console.print(f"• cd {host.host_path}")
+        console.print("• ls -la  # Explore the cloned structure")
+        console.print("• Find cards: find . -name '*.md' -not -path '*/.*'")
+        console.print("• Edit cards with your favorite editor")
+
+    except Exception as e:
+        console.print(f"[red]Error during clone: {e}[/red]")
+        raise typer.Exit(1)
 
 
 @app.command("host")
@@ -144,7 +220,10 @@ def list_cloned(
     if not found_any:
         console.print("[dim]No WeKan repositories found.[/dim]")
         console.print("\n[yellow]Try running:[/yellow]")
-        console.print("  wekan clone host <url> <username> <password>")
+        console.print("  wekan clone configured                       # Use .wekan config file")
+        console.print(
+            "  wekan clone host <url> <username> <password> # Provide credentials directly"
+        )
 
 
 if __name__ == "__main__":
