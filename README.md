@@ -254,6 +254,15 @@ wekan clone host https://wekan.example.com username password --output ~/my-wekan
 # List cloned repositories
 wekan clone list
 wekan clone list ~/my-wekan-backups
+
+# Push/Sync changes back to WeKan server
+wekan push status                                   # Show what changes need syncing (like git status)
+wekan push status ./AI_Engineering                 # Check status for specific board
+wekan push board                                    # Push current directory changes
+wekan push board ./AI_Engineering                  # Push specific board changes
+wekan push board --dry-run                         # Preview changes without applying
+wekan push board --force                           # Skip confirmation prompt
+wekan push diff                                     # Show detailed differences
 ```
 
 The filesystem representation follows this structure:
@@ -292,6 +301,116 @@ Create robust user authentication with login/logout...
 - [ ] API endpoints creation
 ```
 
+#### Complete Git-like Workflow
+The filesystem representation enables a complete git-like workflow for your kanban boards:
+
+```bash
+# 1. Clone your WeKan boards to local filesystem
+wekan clone configured --output ~/my-project
+
+# 2. Edit your tasks offline using your favorite text editor
+cd ~/my-project/wekan.example.com/AI_Engineering/
+vim Backlog/001-implement-auth.md
+
+# 3. Check what changes you made
+wekan push status
+# Output: Found 1 change to sync:
+#   ✏️ 1 card(s) to update:
+#     • "Implement user authentication"
+
+# 4. Preview the exact changes
+wekan push diff
+
+# 5. Push changes back to WeKan server
+wekan push board
+# Confirms and syncs your changes back to the server
+
+# 6. Optional: Commit to git for version control
+git add .
+git commit -m "Updated authentication task requirements"
+```
+
+This workflow enables:
+- **Offline editing** of your kanban boards
+- **Version control** of project management data
+- **Integration with git hooks** for automated synchronization
+- **Collaborative editing** through standard git workflows
+- **Backup and restore** capabilities through git repositories
+
+#### Advanced Integration Possibilities
+
+This bidirectional sync opens up powerful new paradigms for software development:
+
+**🔄 Administration-Code Alignment**
+- Keep project administration **in sync with code** under the same version control system
+- Link commits, branches, and releases directly to their corresponding tasks and user stories
+- Ensure project management data evolves alongside the codebase it describes
+
+**👥 Cross-Functional Collaboration**
+- **Management participation**: Managers can directly edit tasks, priorities, and requirements using familiar text editors
+- **Developer engagement**: Developers can update task status, add technical notes, and refine requirements during implementation
+- **Unified workflow**: Both technical and non-technical team members work within the same version-controlled environment
+
+**📚 Integrated Documentation Ecosystem**
+The filesystem representation enables linking project administration with comprehensive documentation:
+
+```bash
+my-project/
+├── src/                           # Source code
+├── docs/
+│   ├── requirements/              # Requirements documentation
+│   ├── use-cases/                # Use case specifications
+│   └── test-strategy/            # Testing strategies
+├── wekan-boards/                 # Project administration
+│   ├── Product-Backlog/          # User stories and features
+│   ├── Sprint-Planning/          # Sprint tasks and assignments
+│   └── QA-Testing/              # Test cases and bug reports
+└── README.md
+```
+
+**🔗 Traceability & Linking**
+- **Requirements ↔ Tasks**: Link requirement documents directly to implementation tasks
+- **Use Cases ↔ Stories**: Connect use case specifications to user stories and acceptance criteria
+- **Test Strategy ↔ QA Tasks**: Bind testing strategies to specific QA tasks and test cases
+- **Code ↔ Administration**: Reference specific commits, pull requests, and code changes from task descriptions
+
+**⚡ Advanced Workflows**
+
+*Git Hooks Integration*:
+```bash
+# Pre-commit hook: Validate task status matches code changes
+# Post-commit hook: Auto-update task progress based on commit messages
+# Pre-push hook: Ensure all tasks are properly documented before deployment
+```
+
+*Branch-Based Task Management*:
+```bash
+# Create feature branch with associated task updates
+git checkout -b feature/user-auth
+wekan push board  # Sync updated task status to "In Progress"
+
+# On merge to main
+git merge feature/user-auth
+wekan push board  # Auto-move tasks to "Done" status
+```
+
+*Release Coordination*:
+```bash
+# Tag releases with synchronized project state
+git tag v1.2.0
+wekan clone configured --output releases/v1.2.0/  # Snapshot project state
+```
+
+**🎯 Benefits for Different Roles**
+
+- **Project Managers**: Edit priorities and requirements in familiar editors, track changes through git history
+- **Product Owners**: Collaborate on user stories and acceptance criteria using standard development workflows
+- **Developers**: Update technical implementation details and progress without leaving their development environment
+- **QA Engineers**: Maintain test cases and bug reports alongside code and documentation
+- **Technical Writers**: Keep documentation synchronized with both code changes and administrative decisions
+
+This creates a **unified source of truth** where code, administration, documentation, and project management all live under the same version control system, enabling unprecedented traceability and collaboration across all aspects of software development.
+
 **Note**: The default `wekan-repos/` directory is automatically added to `.gitignore` to prevent cloned WeKan data from being committed to your project repositories.
 
 ### Configuration
@@ -327,7 +446,10 @@ export WEKAN_PASSWORD=your-password
 - **Configuration Management**: Flexible configuration via files or environment variables
 - **Error Handling**: Improved error handling and user-friendly messages
 - **Filesystem Cloning**: Clone WeKan boards to local filesystem as markdown files
-- **Git-like Workflow**: Version control your kanban boards with standard tools
+- **Bidirectional Sync**: Push filesystem changes back to WeKan server
+- **Git-like Workflow**: Complete version control workflow (clone, status, diff, push) for kanban boards
+- **Content-based Change Detection**: Smart detection of actual content changes, not just timestamps
+- **Safe Operations**: Dry-run mode and confirmation prompts prevent accidental changes
 
 ## Development
 ### Generate requirements
